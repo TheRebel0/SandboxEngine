@@ -2,41 +2,43 @@ name: Build All Platforms
 on: [push]
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Install Meson
-        run: pip install meson
-      - name: Build
-        run: |
-          meson setup build --buildtype=release
-          meson compile -C build
-      - name: Upload Windows
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-build
-          path: build/*.exe
-
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: recursive
       - name: Install deps
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libsdl2-dev libbz2-dev libcurl4-openssl-dev libfftw3-dev libjsoncpp-dev libluajit-5.1-dev zlib1g-dev python3-pip
+          sudo apt update
+          sudo apt install -y build-essential python3-pip pkg-config libluajit-5.1-dev libcurl4-openssl-dev libfftw3-dev zlib1g-dev libsdl2-dev libbz2-dev libjsoncpp-dev ninja-build
           pip3 install meson
       - name: Build
         run: |
           meson setup build --buildtype=release
           meson compile -C build
-      - name: Upload Linux
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: linux-build
-          path: build/powder*
+          path: build/powder
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup
+        run: |
+          pip install meson ninja
+      - name: Build
+        run: |
+          meson setup build --buildtype=release
+          meson compile -C build
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: build/powder.exe
+          if-no-files-found: warn
