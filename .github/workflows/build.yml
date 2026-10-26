@@ -1,0 +1,33 @@
+name: Build All Platforms
+on: [push]
+
+jobs:
+  linux-x86:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y meson libsdl2-dev libcurl4-openssl-dev libfftw3-dev zlib1g-dev
+      - run: meson setup build
+      - run: meson compile -C build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SandboxEngine-Linux-x86
+          path: build/powder
+
+  windows-x86:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: mingw-w64-x86_64-meson mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2 mingw-w64-x86_64-curl mingw-w64-x86_64-fftw mingw-w64-x86_64-zlib
+      - shell: msys2 {0}
+        run: |
+          meson setup build --buildtype=release
+          meson compile -C build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SandboxEngine-Windows-x86
+          path: build/powder.exe
